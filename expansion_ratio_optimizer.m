@@ -1,31 +1,18 @@
-%
-% function [epsilon] = expansion_ratio_optimizer(atm_pressure, chamber_pressure, A_t, Cf_vac, diam)
-
-   atm_pressure = 7.5;
-   chamber_pressure = 250;
-   A_t = 4;
-   Cf_vac = 1.6;
-   max_diam = 10;
-   index = 1;
-
-   t_diam = 2*(sqrt(A_t/pi));
+function [epsilon] = expansion_ratio_optimizer(atm_pressure, chamber_pressure, A_t, gamma)
+    R_e = sqrt(A_t/pi) : 0.01 : 6; %Exit radius runs from throat radius to 6 inches in increments of 0.1 inches
     
-    arr_impulse = [];
+    impulse_arr = zeros(length(R_e));
+    impulse_arr = impulse_arr(:,1); % Array of zeros for total impulse from given exit radius
     
-    for diam = t_diam:0.01:max_diam
-        arr_diam(index) = diam;
-        A_e(index) = pi*((diam/2)^2);
-        arr_impulse = [arr_impulse, total_impulse(atm_pressure, chamber_pressure, A_e(index), Cf_vac, A_t)];
-
-        index = index + 1;
+    for i = 1:length(R_e)
+        impulse_arr(i) = total_impulse(atm_pressure, chamber_pressure, pi*R_e^2, A_t, gamma);
     end
     
-   max_impulse_index = find(max(arr_impulse));
-
-   max_A_e = A_e(max_impulse_index);
-
-   epsilon = max_A_e/A_t;
-
-    plot(t_diam:0.01:diam, arr_impulse)
-
-    disp(epsilon)
+    plot(R_e, impulse_arr)
+    
+    [max_impulse, j] = max(impulse_arr);
+    
+    epsilon = pi*R_e(j)^2; %set epsilon to the optimal exit area
+    
+    disp("The maximum impulse, %d is achieved by an exit area of %d", max_impulse, epsilon);
+end
